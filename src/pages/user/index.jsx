@@ -1,44 +1,24 @@
 import { useEffect, useState } from 'react';
-import { Table, Button, Input, Select, Space, Modal, Form } from 'antd';
-import { DeleteOutlined, EditOutlined } from '@ant-design/icons';
+import { Table, Button, Input, Space, Modal, Form } from 'antd';
+import { DeleteOutlined } from '@ant-design/icons';
 import Swal from 'sweetalert2';
+import Cookies from "js-cookie";
 import axios from 'axios';
 import './style.scss';
 
-const { Search } = Input;
-const { Option } = Select;
+// const { Search } = Input;
 
 const User = () => {
-  const [data, setData] = useState([
-    {
-      key: '1',
-      name: 'John Doe',
-      email: 'johndoe@example.com',
-      role: 'Student',
-      phone: '0123456789',
-      status: 'Active',
-    },
-    {
-      key: '2',
-      name: 'Jane Smith',
-      email: 'janesmith@example.com',
-      role: 'Teacher',
-      phone: '0987654321',
-      status: 'Active',
-    },
-    {
-      key: '3',
-      name: 'Bob Johnson',
-      email: 'bobjohnson@example.com',
-      role: 'Student',
-      phone: '0369852147',
-      status: 'Soft Deleted',
-    },
-  ]);
-  const [fullName, setFullName] = useState('');
+  const token = Cookies.get("token");
+  const [form] = Form.useForm();
+
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
-  const [phoneNumber, setPhoneNumber] = useState('');
   const [password, setPassWord] = useState('');
+  const [phone, setPhone] = useState('');
+  const [address, setAddress] = useState('');
+
+
   const [listUser, setListUser] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const columns = [
@@ -49,8 +29,8 @@ const User = () => {
     },
     {
       title: 'Full Name',
-      dataIndex: 'fullName',
-      key: 'fullName',
+      dataIndex: 'name',
+      key: 'name',
     },
     {
       title: 'Email',
@@ -58,70 +38,35 @@ const User = () => {
       key: 'email',
     },
     {
-      title: 'Role',
-      dataIndex: 'role',
-      key: 'role',
+      title: 'Adress',
+      dataIndex: 'address',
+      key: 'address',
     },
     {
       title: 'Phone Number',
-      dataIndex: 'phoneNumber',
-      key: 'phoneNumber',
-    },
-    {
-      title: 'Status',
-      dataIndex: 'status',
-      key: 'status',
+      dataIndex: 'phone',
+      key: 'phone',
     },
     {
       title: 'Actions',
       key: 'actions',
       render: (text, record) => (
         <Space>
-          <Button icon={<EditOutlined />} />
-          <Button icon={<DeleteOutlined />} danger onClick={() => handleDelete(record.key)} />
+          <Button icon={<DeleteOutlined />} danger onClick={() => handleDelete(record.id)} />
         </Space>
       ),
     },
   ];
-  const updateRole = (data) => {
-    data.forEach((user) => {
-      switch (user.roleId) {
-        case 1:
-          user.role = 'Student';
-          break;
-        case 2:
-          user.role = 'Teacher';
-          break;
-        case 3:
-          user.role = 'Admin';
-          break;
-        default:
-          user.role = 'unknown';
-      }
-    });
-    return data;
-  };
-  const updateStatus = (data) => {
-    data.forEach((user) => {
-      switch (user.isDeleted) {
-        case true:
-          user.status = 'Soft Delete';
-          break;
-        case false:
-          user.status = 'Active';
-          break;
-      }
-    });
-    return data;
-  };
 
   const getUserAPI = async () => {
     try {
-      const response = await axios.get(`${import.meta.env.VITE_DOMAIN}api/User`);
-      const newData = updateStatus(response.data);
-      console.log(newData);
-
-      setListUser(updateRole(newData));
+      const response = await axios.get(`${import.meta.env.VITE_DOMAIN}api/admin/list-staff`,{
+        headers: {
+          Accept: 'application/json',
+          Authorization: `Bearer ${token}`,
+        }
+      });
+      response.data ? setListUser(response.data[0]) : setListUser([]);
     } catch (error) {
       console.error(error);
     }
@@ -130,14 +75,11 @@ const User = () => {
   useEffect(() => {
     getUserAPI();
   }, []);
-  const resetModal = () => {
-    setFullName('');
-    setEmail('');
-    setPhoneNumber('');
-    setPassWord('');
-  };
+
+ 
+
   const showModal = () => {
-    resetModal();
+    form.resetFields();
     setIsModalOpen(true);
   };
 
@@ -149,13 +91,8 @@ const User = () => {
     setIsModalOpen(false);
   };
 
-  const handleDelete = (key) => {
-    const newData = data.filter((item) => item.key !== key);
-    setData(newData);
-  };
-
   const handleSignUp = async () => {
-    if (!fullName || !email || !phoneNumber || !password) {
+    if (!name || !email || !password || !phone) {
       Swal.fire({
         title: 'Warning: Please Complete All Required Information',
         text: 'Please fill in all the information.',
@@ -165,19 +102,24 @@ const User = () => {
     }
 
     const params = {
-      fullName,
+      name,
       email,
       password,
-      phoneNumber,
+      phone,
+      address
     };
 
     try {
-      const response = await axios.post(`${import.meta.env.VITE_DOMAIN}api/User/Register/Teacher`, params);
-
+      const response = await axios.post(`${import.meta.env.VITE_DOMAIN}api/admin/create-staff`, params, {
+        headers: {
+          Accept: 'application/json',
+          Authorization: `Bearer ${token}`,
+        }
+      });
       Swal.fire({
         position: 'center',
         icon: 'success',
-        title: response.data.message,
+        title: response.data[0],
         showConfirmButton: false,
         timer: 1500,
       });
@@ -190,25 +132,49 @@ const User = () => {
         text: error.response.data.message,
         icon: 'error',
       });
-    }
+    } 
   };
+
+  const handleDelete = async (id) => {
+    try {
+      const response = await axios.delete(`${import.meta.env.VITE_DOMAIN}api/admin/delete-staff/${id}`, {
+        headers: {
+          Accept: 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      Swal.fire({
+        position: 'center',
+        icon: 'success',
+        title: response.data[0],
+        showConfirmButton: false,
+        timer: 1500,
+      });
+      getUserAPI();
+      handleOk();
+    } catch (error) {
+      console.error('Login error:', error);
+      Swal.fire({
+        title: 'Fail ?',
+        text: error.response.data.message,
+        icon: 'error',
+      });
+    } 
+  };
+
+  
 
   return (
     <>
       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>
         <Button type="primary" onClick={showModal}>
-          Add Teacher Account
+          Add User
         </Button>
-        <Space>
+        {/* <Space>
           <Search placeholder="Search by name or email" style={{ width: 200 }} />
-          <Select defaultValue="All" style={{ width: 120 }}>
-            <Option value="All">All</Option>
-            <Option value="Active">Active</Option>
-            <Option value="Soft Deleted">Soft Deleted</Option>
-          </Select>
-        </Space>
+        </Space> */}
       </div>
-      <Table columns={columns} dataSource={data} />
+      <Table columns={columns} dataSource={listUser.map((user) => ({ ...user, key: user.id }))} />
       <Modal
         title="Add Teacher Account"
         open={isModalOpen}
@@ -223,28 +189,32 @@ const User = () => {
           </Button>,
         ]}
       >
-        <Form layout="vertical">
+        <Form layout="vertical" form={form}>
           <Form.Item label="Full Name" name="fullName" required>
-            <Input placeholder="Enter full name" value={fullName} onChange={(e) => setFullName(e.target.value)} />
+            <Input placeholder="Enter full name" value={name} onChange={(e) => setName(e.target.value)} />
           </Form.Item>
           <Form.Item label="Email" name="email" required>
             <Input type="email" placeholder="Enter email" value={email} onChange={(e) => setEmail(e.target.value)} />
           </Form.Item>
-          <Form.Item label="Phone Number" name="phoneNumber">
+          <Form.Item label="Phone Number" name="phoneNumber" required>
             <Input
               placeholder="Enter phone number"
-              value={phoneNumber}
-              onChange={(e) => setPhoneNumber(e.target.value)}
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
             />
-          </Form.Item>
-          <Form.Item label="Role" name="role">
-            <Input placeholder="Teacher" value="Teacher" disabled />
           </Form.Item>
           <Form.Item label="Password" name="password" required>
             <Input.Password
               placeholder="Enter password"
               value={password}
               onChange={(e) => setPassWord(e.target.value)}
+            />
+          </Form.Item>
+          <Form.Item label="Address" name="address" >
+            <Input
+              placeholder="Enter address"
+              value={address}
+              onChange={(e) => setAddress(e.target.value)}
             />
           </Form.Item>
         </Form>

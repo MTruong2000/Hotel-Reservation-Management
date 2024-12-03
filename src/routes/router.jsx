@@ -10,9 +10,9 @@ const router = createBrowserRouter([
   {
     path: '/',
     element: (
-      // <RequireAuth>
+      <RequireAuth>
         <Home />
-      // </RequireAuth>
+      </RequireAuth>
     ),
     children: [
       { path: '/', element: <DashBoard /> },

@@ -21,18 +21,26 @@ function Login() {
       return;
     }
 
-    try {
-      const response = await axios.post(
-        `${import.meta.env.VITE_DOMAIN}api/User/Login?email=${email}&password=${passWord}`,
-      );
+    const response = await axios.post(
+      `${import.meta.env.VITE_DOMAIN}api/admin/login`,
+      {
+        email,
+        password: passWord,
+      },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      }
+    );
 
-      const expirationDate = new Date(response.data.token.refreshTokenExpiration);
-      Cookies.set('jwtToken', response.data.token.jwtToken, {
-        expires: expirationDate,
+    if(response.data.success ){
+      Cookies.set('Auth', response.data.Auth, {
+        expires: 30,
         path: '/',
       });
-      Cookies.set('refreshToken', response.data.token.refreshToken, {
-        expires: expirationDate,
+      Cookies.set('token', response.data.token, {
+        expires: 30,
         path: '/',
       });
       Swal.fire({
@@ -46,13 +54,12 @@ function Login() {
       setTimeout(() => {
         navigate('/');
       }, 2000);
-    } catch (error) {
+    }else{
       Swal.fire({
         title: 'Login Fail ?',
-        text: error.response.data.message,
+        text: "Fails",
         icon: 'error',
       });
-      console.error('Login error:', error.response.data.message);
     }
   };
 
