@@ -4,7 +4,7 @@ import Home from '../pages/home';
 import User from '../pages/user';
 import Login from '../pages/login';
 import DashBoard from '../pages/dashboard';
-import Category from '../pages/category';
+import ServiceManagement from '../pages/service';
 
 const router = createBrowserRouter([
   {
@@ -17,7 +17,7 @@ const router = createBrowserRouter([
     children: [
       { path: '/', element: <DashBoard /> },
       { path: 'user', element: <User /> },
-      { path: 'category', element: <Category /> },
+      { path: 'service', element: <ServiceManagement /> },
     ],
   },
   {

@@ -71,8 +71,8 @@ function Sidebar() {
             </Link>
           </li>
           <li className="menu-item">
-            <Link className="" to={`/category`}>
-              <RiListCheck2 className="icon" /> Categories
+            <Link className="" to={`/service`}>
+              <RiListCheck2 className="icon" /> Quản lý dịch vụ
             </Link>
           </li>
           <li className="menu-item">
