@@ -46,6 +46,7 @@ const ServiceManagement = () => {
           Authorization: `Bearer ${token}`,
         },
       });
+      console.log(response.data);
       response.data ? setListUser(response.data[0]) : setListUser([]);
     } catch (error) {
       console.error(error);

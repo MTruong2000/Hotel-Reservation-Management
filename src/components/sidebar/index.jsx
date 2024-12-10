@@ -57,7 +57,7 @@ function Sidebar() {
   return (
     <>
       <div className="sidebar">
-        <h2 className="sidebar-title">Aduca English</h2>
+        <h2 className="sidebar-title">HOTEL MN</h2>
         <ul className="sidebar-menu">
           <li className="menu-item">
             <Link className="" to={`/`}>
@@ -68,6 +68,11 @@ function Sidebar() {
           <li className="menu-item">
             <Link className="" to={`/user`}>
               <RiUser3Line className="icon" /> Quản lý nhân viên
+            </Link>
+          </li>
+          <li className="menu-item">
+            <Link className="" to={`/category-room`}>
+              <RiListCheck2 className="icon" /> Quản lý loại phòng
             </Link>
           </li>
           <li className="menu-item">

@@ -8,15 +8,14 @@ import './style.scss';
 
 // const { Search } = Input;
 
-const User = () => {
+const CategoryRoom = () => {
   const token = Cookies.get('token');
   const [form] = Form.useForm();
 
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassWord] = useState('');
-  const [phone, setPhone] = useState('');
-  const [address, setAddress] = useState('');
+  const [roomType, setRoomType] = useState('');
+  const [adult, setAdult] = useState('');
+  const [children, setChildren] = useState('');
+  const [size, setSize] = useState('');
 
   const [listUser, setListUser] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -27,24 +26,30 @@ const User = () => {
       key: 'id',
     },
     {
-      title: 'Full Name',
-      dataIndex: 'name',
-      key: 'name',
+      title: 'Room type',
+      dataIndex: 'room_type',
+      key: 'room_type',
     },
     {
-      title: 'Email',
-      dataIndex: 'email',
-      key: 'email',
+      title: 'Adult',
+      dataIndex: 'adult',
+      key: 'adult',
     },
     {
-      title: 'Adress',
-      dataIndex: 'address',
-      key: 'address',
+      title: 'Count Children',
+      dataIndex: 'num_children',
+      key: 'num_children',
     },
     {
-      title: 'Phone Number',
-      dataIndex: 'phone',
-      key: 'phone',
+      title: 'Size',
+      dataIndex: 'size',
+      key: 'size',
+    },
+    {
+      title: 'Status',
+      dataIndex: 'status',
+      key: 'status',
+      render: (status) => (status === 1 ? 'Active' : 'Inactive'),
     },
     {
       title: 'Actions',
@@ -59,15 +64,24 @@ const User = () => {
 
   const getUserAPI = async () => {
     try {
-      const response = await axios.get(`${import.meta.env.VITE_DOMAIN}api/admin/list-staff`, {
+      const response = await axios.get(`${import.meta.env.VITE_DOMAIN}api/admin/list-cate-room`, {
         headers: {
           Accept: 'application/json',
           Authorization: `Bearer ${token}`,
         },
       });
-      response.data ? setListUser(response.data[0]) : setListUser([]);
+      const list = Array.isArray(response.data) && Array.isArray(response.data[0]) ? response.data[0] : [];
+
+      const processedList = list.map((item) => ({
+        ...item,
+        num_children: Number(item.children),
+        children: undefined,
+      }));
+
+      setListUser(processedList);
     } catch (error) {
       console.error(error);
+      setListUser([]);
     }
   };
 
@@ -89,7 +103,7 @@ const User = () => {
   };
 
   const handleSignUp = async () => {
-    if (!name || !email || !password || !phone) {
+    if (!name) {
       Swal.fire({
         title: 'Warning: Please Complete All Required Information',
         text: 'Please fill in all the information.',
@@ -99,15 +113,11 @@ const User = () => {
     }
 
     const params = {
-      name,
-      email,
-      password,
-      phone,
-      address,
+      service_name: name,
     };
 
     try {
-      const response = await axios.post(`${import.meta.env.VITE_DOMAIN}api/admin/create-staff`, params, {
+      const response = await axios.post(`${import.meta.env.VITE_DOMAIN}api/admin/create-service`, params, {
         headers: {
           Accept: 'application/json',
           Authorization: `Bearer ${token}`,
@@ -134,7 +144,7 @@ const User = () => {
 
   const handleDelete = async (id) => {
     try {
-      const response = await axios.delete(`${import.meta.env.VITE_DOMAIN}api/admin/delete-staff/${id}`, {
+      const response = await axios.delete(`${import.meta.env.VITE_DOMAIN}api/admin/delete-service/${id}`, {
         headers: {
           Accept: 'application/json',
           Authorization: `Bearer ${token}`,
@@ -159,21 +169,25 @@ const User = () => {
     }
   };
 
-  console.log(listUser);
-
   return (
     <>
       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>
         <Button type="primary" onClick={showModal}>
-          Add User
+          Add Category Room
         </Button>
         {/* <Space>
           <Search placeholder="Search by name or email" style={{ width: 200 }} />
         </Space> */}
       </div>
-      <Table columns={columns} dataSource={listUser.map((user) => ({ ...user, key: user.id }))} />
+      <Table
+        columns={columns}
+        dataSource={listUser.map((user) => ({
+          ...user,
+          key: user.id,
+        }))}
+      />
       <Modal
-        title="Add Teacher Account"
+        title="Add Category Room"
         open={isModalOpen}
         onOk={handleSignUp}
         onCancel={handleCancel}
@@ -182,29 +196,56 @@ const User = () => {
             Cancel
           </Button>,
           <Button key="submit" type="primary" onClick={handleSignUp}>
-            Add User
+            Add Category Room
           </Button>,
         ]}
       >
         <Form layout="vertical" form={form}>
-          <Form.Item label="Full Name" name="fullName" required>
-            <Input placeholder="Enter full name" value={name} onChange={(e) => setName(e.target.value)} />
+          <Form.Item
+            label="Room Type"
+            name="room_type"
+            rules={[{ required: true, message: 'Please enter the room type!' }]}
+          >
+            <Input placeholder="Enter room type" value={roomType} onChange={(e) => setRoomType(e.target.value)} />
           </Form.Item>
-          <Form.Item label="Email" name="email" required>
-            <Input type="email" placeholder="Enter email" value={email} onChange={(e) => setEmail(e.target.value)} />
-          </Form.Item>
-          <Form.Item label="Phone Number" name="phoneNumber" required>
-            <Input placeholder="Enter phone number" value={phone} onChange={(e) => setPhone(e.target.value)} />
-          </Form.Item>
-          <Form.Item label="Password" name="password" required>
-            <Input.Password
-              placeholder="Enter password"
-              value={password}
-              onChange={(e) => setPassWord(e.target.value)}
+
+          <Form.Item
+            label="Adults"
+            name="adult"
+            rules={[{ required: true, message: 'Please enter the number of adults!' }]}
+          >
+            <Input
+              type="number"
+              placeholder="Enter number of adults"
+              value={adult}
+              onChange={(e) => setAdult(e.target.value)}
             />
           </Form.Item>
-          <Form.Item label="Address" name="address">
-            <Input placeholder="Enter address" value={address} onChange={(e) => setAddress(e.target.value)} />
+
+          <Form.Item
+            label="Children"
+            name="children"
+            rules={[{ required: true, message: 'Please enter the number of children!' }]}
+          >
+            <Input
+              type="number"
+              placeholder="Enter number of children"
+              value={children}
+              onChange={(e) => setChildren(e.target.value)}
+            />
+          </Form.Item>
+
+          <Form.Item
+            label="Size (sqft)"
+            name="size"
+            rules={[{ required: true, message: 'Please enter the room size!' }]}
+          >
+            <Input
+              type="number"
+              placeholder="Enter room size in sqft"
+              value={size}
+              onChange={(e) => setSize(e.target.value)}
+            />
           </Form.Item>
         </Form>
       </Modal>
@@ -212,4 +253,4 @@ const User = () => {
   );
 };
 
-export default User;
+export default CategoryRoom;
