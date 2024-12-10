@@ -1,11 +1,4 @@
-import {
-  RiDashboardLine,
-  RiUser3Line,
-  RiListCheck2,
-  RiBookLine,
-  RiMoneyDollarCircleLine,
-  RiLogoutBoxLine,
-} from 'react-icons/ri';
+import { RiDashboardLine, RiUser3Line, RiListCheck2, RiLogoutBoxLine } from 'react-icons/ri';
 import { Link, useNavigate } from 'react-router-dom';
 import Cookies from 'js-cookie';
 import axios from 'axios';
@@ -31,15 +24,14 @@ function Sidebar() {
         showConfirmButton: false,
         timer: 1500,
       });
-      const cookies = document.cookie.split(";");
+      const cookies = document.cookie.split(';');
 
       for (let i = 0; i < cookies.length; i++) {
         const cookie = cookies[i];
-        const eqPos = cookie.indexOf("=");
+        const eqPos = cookie.indexOf('=');
         const name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
 
-        document.cookie =
-          name + "=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/";
+        document.cookie = name + '=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/';
       }
 
       setTimeout(() => {
@@ -49,7 +41,7 @@ function Sidebar() {
       console.error('Logout error:', error);
       Swal.fire({
         title: 'Fail ?',
-        text: "Logout fails",
+        text: 'Logout fails',
         icon: 'error',
       });
     }
@@ -81,10 +73,9 @@ function Sidebar() {
             </Link>
           </li>
           <li className="menu-item">
-            <RiBookLine className="icon" /> Courses
-          </li>
-          <li className="menu-item">
-            <RiMoneyDollarCircleLine className="icon" /> History Payments
+            <Link className="" to={`/product`}>
+              <RiListCheck2 className="icon" /> Quản lý sản phẩm
+            </Link>
           </li>
           <li className="menu-item logout-item" onClick={handleLogout}>
             <RiLogoutBoxLine className="icon" /> Logout

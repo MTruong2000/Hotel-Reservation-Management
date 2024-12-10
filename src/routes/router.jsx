@@ -6,6 +6,7 @@ import Login from '../pages/login';
 import DashBoard from '../pages/dashboard';
 import ServiceManagement from '../pages/service';
 import CategoryRoom from '../pages/categoryroom';
+import Product from '../pages/product';
 
 const router = createBrowserRouter([
   {
@@ -20,6 +21,7 @@ const router = createBrowserRouter([
       { path: 'user', element: <User /> },
       { path: 'category-room', element: <CategoryRoom /> },
       { path: 'service', element: <ServiceManagement /> },
+      { path: 'product', element: <Product /> },
     ],
   },
   {

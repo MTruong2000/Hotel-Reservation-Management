@@ -1,22 +1,22 @@
 import { useEffect, useState } from 'react';
 import { Table, Button, Input, Space, Modal, Form } from 'antd';
 import { DeleteOutlined, EditOutlined } from '@ant-design/icons';
-import Cookies from 'js-cookie';
 import Swal from 'sweetalert2';
+import Cookies from 'js-cookie';
 import axios from 'axios';
 import './style.scss';
 
 // const { Search } = Input;
 
-const CategoryRoom = () => {
+const Product = () => {
   const token = Cookies.get('token');
   const [form] = Form.useForm();
   const [formEdit] = Form.useForm();
 
-  const [roomType, setRoomType] = useState('');
-  const [adult, setAdult] = useState('');
-  const [children, setChildren] = useState('');
-  const [size, setSize] = useState('');
+  const [idUser, setIdUser] = useState('');
+  const [name, setName] = useState('');
+  const [price, setPrice] = useState('');
+  const [idCategory, setIdCategory] = useState('');
 
   const [listUser, setListUser] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -29,24 +29,14 @@ const CategoryRoom = () => {
       key: 'id',
     },
     {
-      title: 'Room type',
-      dataIndex: 'room_type',
-      key: 'room_type',
+      title: 'Name',
+      dataIndex: 'name',
+      key: 'name',
     },
     {
-      title: 'Adult',
-      dataIndex: 'adult',
-      key: 'adult',
-    },
-    {
-      title: 'Count Children',
-      dataIndex: 'num_children',
-      key: 'num_children',
-    },
-    {
-      title: 'Size',
-      dataIndex: 'size',
-      key: 'size',
+      title: 'Price',
+      dataIndex: 'price',
+      key: 'price',
     },
     {
       title: 'Status',
@@ -68,7 +58,7 @@ const CategoryRoom = () => {
 
   const getUserAPI = async () => {
     try {
-      const response = await axios.get(`${import.meta.env.VITE_DOMAIN}api/admin/list-cate-room`, {
+      const response = await axios.get(`${import.meta.env.VITE_DOMAIN}api/admin/list-product`, {
         headers: {
           Accept: 'application/json',
           Authorization: `Bearer ${token}`,
@@ -107,7 +97,7 @@ const CategoryRoom = () => {
   };
 
   const handleSignUp = async () => {
-    if (!roomType || !adult || !children || !size) {
+    if (!idUser || !name || !price || !idCategory) {
       Swal.fire({
         title: 'Warning: Please Complete All Required Information',
         text: 'Please fill in all the information.',
@@ -117,15 +107,15 @@ const CategoryRoom = () => {
     }
 
     const params = {
-      room_type: roomType,
-      adult: Number(adult),
-      children: Number(children),
-      size: Number(size),
+      id_user: idUser,
+      name,
+      price,
+      id_category: idCategory,
       status: 1,
     };
 
     try {
-      const response = await axios.post(`${import.meta.env.VITE_DOMAIN}api/admin/create-cate-room`, params, {
+      const response = await axios.post(`${import.meta.env.VITE_DOMAIN}api/admin/create-product`, params, {
         headers: {
           Accept: 'application/json',
           Authorization: `Bearer ${token}`,
@@ -153,7 +143,7 @@ const CategoryRoom = () => {
 
   const handleDelete = async (id) => {
     try {
-      const response = await axios.delete(`${import.meta.env.VITE_DOMAIN}api/admin/delete-cate-room/${id}`, {
+      const response = await axios.delete(`${import.meta.env.VITE_DOMAIN}api/admin/delete-product/${id}`, {
         headers: {
           Accept: 'application/json',
           Authorization: `Bearer ${token}`,
@@ -184,7 +174,7 @@ const CategoryRoom = () => {
   };
 
   const handleEditCourse = async () => {
-    if (!selectedUser.room_type || !selectedUser.adult || !selectedUser.num_children || !selectedUser.size) {
+    if (!selectedUser.id_user || !selectedUser.name || !selectedUser.price || !selectedUser.id_category) {
       Swal.fire({
         title: 'Warning: Please Complete All Required Information',
         text: 'Please fill in all the information.',
@@ -194,15 +184,15 @@ const CategoryRoom = () => {
     }
 
     const params = new FormData();
-    params.append('room_type', selectedUser.room_type);
-    params.append('adult', selectedUser.adult);
-    params.append('children', selectedUser.num_children);
-    params.append('size', selectedUser.size);
+    params.append('id_user', selectedUser.id_user);
+    params.append('name', selectedUser.name);
+    params.append('price', selectedUser.price);
+    params.append('id_category', selectedUser.id_category);
     params.append('status', 1);
 
     try {
       const response = await axios.post(
-        `${import.meta.env.VITE_DOMAIN}api/admin/edit-cate-room/${selectedUser.id}`,
+        `${import.meta.env.VITE_DOMAIN}api/admin/edit-product/${selectedUser.id}`,
         params,
         {
           headers: {
@@ -236,19 +226,20 @@ const CategoryRoom = () => {
   useEffect(() => {
     if (selectedUser) {
       formEdit.setFieldsValue({
-        room_type: selectedUser.room_type,
-        adult: selectedUser.adult,
-        children: selectedUser.num_children,
-        size: selectedUser.size,
+        id_user: selectedUser.id_user,
+        name: selectedUser.name,
+        price: selectedUser.price,
+        id_category: selectedUser.id_category,
       });
     }
   }, [selectedUser, formEdit]);
 
+  console.log(selectedUser);
   return (
     <>
       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>
         <Button type="primary" onClick={showModal}>
-          Add Category Room
+          Add Product
         </Button>
         {/* <Space>
           <Search placeholder="Search by name or email" style={{ width: 200 }} />
@@ -262,7 +253,7 @@ const CategoryRoom = () => {
         }))}
       />
       <Modal
-        title="Add Category Room"
+        title="Add Product"
         open={isModalOpen}
         onOk={handleSignUp}
         onCancel={handleCancel}
@@ -271,83 +262,66 @@ const CategoryRoom = () => {
             Cancel
           </Button>,
           <Button key="submit" type="primary" onClick={handleSignUp}>
-            Add Category Room
+            Add Product
           </Button>,
         ]}
       >
         <Form layout="vertical" form={form}>
-          <Form.Item
-            label="Room Type"
-            name="room_type"
-            rules={[{ required: true, message: 'Please enter the room type!' }]}
-          >
-            <Input placeholder="Enter room type" value={roomType} onChange={(e) => setRoomType(e.target.value)} />
+          <Form.Item label="Id User" name="idUser" rules={[{ required: true, message: 'Please enter the Id User!' }]}>
+            <Input placeholder="Enter Id User" value={idUser} onChange={(e) => setIdUser(e.target.value)} />
+          </Form.Item>
+
+          <Form.Item label="Name" name="name" rules={[{ required: true, message: 'Please enter name!' }]}>
+            <Input placeholder="Enter name" value={name} onChange={(e) => setName(e.target.value)} />
           </Form.Item>
 
           <Form.Item
-            label="Adults"
-            name="adult"
-            rules={[{ required: true, message: 'Please enter the number of adults!' }]}
+            label="Price"
+            name="price"
+            rules={[{ required: true, message: 'Please enter the number of price!' }]}
           >
             <Input
               type="number"
-              placeholder="Enter number of adults"
-              value={adult}
-              onChange={(e) => setAdult(e.target.value)}
+              placeholder="Enter number of price"
+              value={price}
+              onChange={(e) => setPrice(e.target.value)}
             />
           </Form.Item>
 
           <Form.Item
-            label="Children"
-            name="children"
-            rules={[{ required: true, message: 'Please enter the number of children!' }]}
+            label="Id Category"
+            name="idCategory"
+            rules={[{ required: true, message: 'Please enter idCategory!' }]}
           >
-            <Input
-              type="number"
-              placeholder="Enter number of children"
-              value={children}
-              onChange={(e) => setChildren(e.target.value)}
-            />
-          </Form.Item>
-
-          <Form.Item label="Size" name="size" rules={[{ required: true, message: 'Please enter the room size!' }]}>
-            <Input
-              type="number"
-              placeholder="Enter room size in sqft"
-              value={size}
-              onChange={(e) => setSize(e.target.value)}
-            />
+            <Input placeholder="Enter idCategory" value={idCategory} onChange={(e) => setIdCategory(e.target.value)} />
           </Form.Item>
         </Form>
       </Modal>
-      <Modal title="Edit Category Room" open={isModalOpenEdit} onCancel={handleEditCancel} onOk={handleEditCourse}>
+      <Modal title="Edit Product" open={isModalOpenEdit} onCancel={handleEditCancel} onOk={handleEditCourse}>
         {selectedUser && (
           <Form layout="vertical" form={formEdit}>
-            <Form.Item label="Room Type" name="room_type" required>
+            <Form.Item label="Id User" name="id_user" required>
               <Input
-                value={selectedUser.room_type}
-                onChange={(e) => setSelectedUser({ ...selectedUser, room_type: e.target.value })}
+                value={selectedUser.id_user}
+                onChange={(e) => setSelectedUser({ ...selectedUser, id_user: e.target.value })}
               />
             </Form.Item>
-            <Form.Item label="Adult" name="adult" required>
+            <Form.Item label="Name" name="name" required>
               <Input
-                type="number"
-                value={selectedUser.adult}
-                onChange={(e) => setSelectedUser({ ...selectedUser, adult: e.target.value })}
+                value={selectedUser.name}
+                onChange={(e) => setSelectedUser({ ...selectedUser, name: e.target.value })}
               />
             </Form.Item>
-            <Form.Item label="Children" name="children" required>
+            <Form.Item label="Price" name="price" required>
               <Input
-                type="number"
-                value={selectedUser.num_children}
-                onChange={(e) => setSelectedUser({ ...selectedUser, num_children: e.target.value })}
+                value={selectedUser.price}
+                onChange={(e) => setSelectedUser({ ...selectedUser, price: e.target.value })}
               />
             </Form.Item>
-            <Form.Item label="Size" name="size" required>
+            <Form.Item label="Id Category" name="id_category" required>
               <Input
-                type="number"
-                value={selectedUser.size}
-                onChange={(e) => setSelectedUser({ ...selectedUser, size: e.target.value })}
+                value={selectedUser.id_category}
+                onChange={(e) => setSelectedUser({ ...selectedUser, id_category: e.target.value })}
               />
             </Form.Item>
           </Form>
@@ -357,4 +331,4 @@ const CategoryRoom = () => {
   );
 };
 
-export default CategoryRoom;
+export default Product;
