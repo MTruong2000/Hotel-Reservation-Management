@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Table, Button, Input, Space, Modal, Form } from 'antd';
-import { DeleteOutlined } from '@ant-design/icons';
-import Swal from 'sweetalert2';
+import { DeleteOutlined, EditOutlined } from '@ant-design/icons';
 import Cookies from 'js-cookie';
+import Swal from 'sweetalert2';
 import axios from 'axios';
 import './style.scss';
 
@@ -11,6 +11,7 @@ import './style.scss';
 const CategoryRoom = () => {
   const token = Cookies.get('token');
   const [form] = Form.useForm();
+  const [formEdit] = Form.useForm();
 
   const [roomType, setRoomType] = useState('');
   const [adult, setAdult] = useState('');
@@ -19,6 +20,8 @@ const CategoryRoom = () => {
 
   const [listUser, setListUser] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isModalOpenEdit, setIsModalOpenEdit] = useState(false);
+  const [selectedUser, setSelectedUser] = useState({});
   const columns = [
     {
       title: 'ID',
@@ -56,6 +59,7 @@ const CategoryRoom = () => {
       key: 'actions',
       render: (text, record) => (
         <Space>
+          <Button icon={<EditOutlined />} onClick={() => handleEdit(record)} />
           <Button icon={<DeleteOutlined />} danger onClick={() => handleDelete(record.id)} />
         </Space>
       ),
@@ -103,7 +107,7 @@ const CategoryRoom = () => {
   };
 
   const handleSignUp = async () => {
-    if (!name) {
+    if (!roomType || !adult || !children || !size) {
       Swal.fire({
         title: 'Warning: Please Complete All Required Information',
         text: 'Please fill in all the information.',
@@ -113,16 +117,21 @@ const CategoryRoom = () => {
     }
 
     const params = {
-      service_name: name,
+      room_type: roomType,
+      adult: Number(adult),
+      children: Number(children),
+      size: Number(size),
+      status: 1,
     };
 
     try {
-      const response = await axios.post(`${import.meta.env.VITE_DOMAIN}api/admin/create-service`, params, {
+      const response = await axios.post(`${import.meta.env.VITE_DOMAIN}api/admin/create-cate-room`, params, {
         headers: {
           Accept: 'application/json',
           Authorization: `Bearer ${token}`,
         },
       });
+
       Swal.fire({
         position: 'center',
         icon: 'success',
@@ -144,7 +153,7 @@ const CategoryRoom = () => {
 
   const handleDelete = async (id) => {
     try {
-      const response = await axios.delete(`${import.meta.env.VITE_DOMAIN}api/admin/delete-service/${id}`, {
+      const response = await axios.delete(`${import.meta.env.VITE_DOMAIN}api/admin/delete-cate-room/${id}`, {
         headers: {
           Accept: 'application/json',
           Authorization: `Bearer ${token}`,
@@ -169,6 +178,73 @@ const CategoryRoom = () => {
     }
   };
 
+  const handleEdit = (record) => {
+    setSelectedUser(record);
+    setIsModalOpenEdit(true);
+  };
+
+  const handleEditCourse = async () => {
+    if (!selectedUser.room_type || !selectedUser.adult || !selectedUser.num_children || !selectedUser.size) {
+      Swal.fire({
+        title: 'Warning: Please Complete All Required Information',
+        text: 'Please fill in all the information.',
+        icon: 'warning',
+      });
+      return;
+    }
+
+    const params = new FormData();
+    params.append('room_type', selectedUser.room_type);
+    params.append('adult', selectedUser.adult);
+    params.append('children', selectedUser.num_children);
+    params.append('size', selectedUser.size);
+    params.append('status', 1);
+
+    try {
+      const response = await axios.post(
+        `${import.meta.env.VITE_DOMAIN}api/admin/edit-cate-room/${selectedUser.id}`,
+        params,
+        {
+          headers: {
+            Accept: 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+      Swal.fire({
+        position: 'center',
+        icon: 'success',
+        title: response.data,
+        showConfirmButton: false,
+        timer: 1500,
+      });
+      getUserAPI();
+      setIsModalOpenEdit(false);
+    } catch (error) {
+      Swal.fire({
+        title: 'Request Fail ?',
+        text: error,
+        icon: 'error',
+      });
+    }
+  };
+
+  const handleEditCancel = () => {
+    setIsModalOpenEdit(false);
+  };
+
+  useEffect(() => {
+    if (selectedUser) {
+      formEdit.setFieldsValue({
+        room_type: selectedUser.room_type,
+        adult: selectedUser.adult,
+        children: selectedUser.num_children,
+        size: selectedUser.size,
+      });
+    }
+  }, [selectedUser, formEdit]);
+
+  console.log(selectedUser);
   return (
     <>
       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>
@@ -235,11 +311,7 @@ const CategoryRoom = () => {
             />
           </Form.Item>
 
-          <Form.Item
-            label="Size (sqft)"
-            name="size"
-            rules={[{ required: true, message: 'Please enter the room size!' }]}
-          >
+          <Form.Item label="Size" name="size" rules={[{ required: true, message: 'Please enter the room size!' }]}>
             <Input
               type="number"
               placeholder="Enter room size in sqft"
@@ -248,6 +320,43 @@ const CategoryRoom = () => {
             />
           </Form.Item>
         </Form>
+      </Modal>
+      <Modal title="Edit Course" open={isModalOpenEdit} onCancel={handleEditCancel} onOk={handleEditCourse}>
+        {selectedUser && (
+          <Form layout="vertical" form={formEdit}>
+            <Form.Item label="Room Type" name="room_type" required>
+              <Input
+                placeholder=""
+                value={selectedUser.room_type}
+                onChange={(e) => setSelectedUser({ ...selectedUser, room_type: e.target.value })}
+              />
+            </Form.Item>
+            <Form.Item label="Adult" name="adult" required>
+              <Input
+                type="number"
+                placeholder="Enter price"
+                value={selectedUser.adult}
+                onChange={(e) => setSelectedUser({ ...selectedUser, adult: e.target.value })}
+              />
+            </Form.Item>
+            <Form.Item label="Children" name="children" required>
+              <Input
+                type="number"
+                placeholder="Enter price"
+                value={selectedUser.num_children}
+                onChange={(e) => setSelectedUser({ ...selectedUser, num_children: e.target.value })}
+              />
+            </Form.Item>
+            <Form.Item label="Size" name="size" required>
+              <Input
+                type="number"
+                placeholder="Enter price"
+                value={selectedUser.size}
+                onChange={(e) => setSelectedUser({ ...selectedUser, size: e.target.value })}
+              />
+            </Form.Item>
+          </Form>
+        )}
       </Modal>
     </>
   );
