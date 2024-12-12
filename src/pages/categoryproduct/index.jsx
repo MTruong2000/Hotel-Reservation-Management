@@ -1,21 +1,22 @@
 import { useEffect, useState } from 'react';
 import { Table, Button, Input, Space, Modal, Form } from 'antd';
 import { DeleteOutlined } from '@ant-design/icons';
-import Swal from 'sweetalert2';
 import Cookies from 'js-cookie';
+import Swal from 'sweetalert2';
 import axios from 'axios';
 import './style.scss';
 
 // const { Search } = Input;
 
-const ServiceManagement = () => {
+const CategoryProduct = () => {
   const token = Cookies.get('token');
   const [form] = Form.useForm();
 
-  const [name, setName] = useState('');
+  const [cateName, setCateName] = useState('');
 
   const [listUser, setListUser] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
+
   const columns = [
     {
       title: 'ID',
@@ -23,9 +24,9 @@ const ServiceManagement = () => {
       key: 'id',
     },
     {
-      title: 'Service Name',
-      dataIndex: 'service_name',
-      key: 'service_name',
+      title: 'Category Name',
+      dataIndex: 'CateName',
+      key: 'CateName',
     },
     {
       title: 'Actions',
@@ -40,15 +41,24 @@ const ServiceManagement = () => {
 
   const getUserAPI = async () => {
     try {
-      const response = await axios.get(`${import.meta.env.VITE_DOMAIN}api/admin/list-service`, {
+      const response = await axios.get(`${import.meta.env.VITE_DOMAIN}api/admin/list-cate-product`, {
         headers: {
           Accept: 'application/json',
           Authorization: `Bearer ${token}`,
         },
       });
-      response.data ? setListUser(response.data[0]) : setListUser([]);
+      const list = Array.isArray(response.data) && Array.isArray(response.data[0]) ? response.data[0] : [];
+
+      const processedList = list.map((item) => ({
+        ...item,
+        num_children: Number(item.children),
+        children: undefined,
+      }));
+
+      setListUser(processedList);
     } catch (error) {
       console.error(error);
+      setListUser([]);
     }
   };
 
@@ -70,7 +80,7 @@ const ServiceManagement = () => {
   };
 
   const handleSignUp = async () => {
-    if (!name) {
+    if (!cateName) {
       Swal.fire({
         title: 'Warning: Please Complete All Required Information',
         text: 'Please fill in all the information.',
@@ -80,20 +90,21 @@ const ServiceManagement = () => {
     }
 
     const params = {
-      service_name: name,
+      CateName: cateName,
     };
 
     try {
-      const response = await axios.post(`${import.meta.env.VITE_DOMAIN}api/admin/create-service`, params, {
+      const response = await axios.post(`${import.meta.env.VITE_DOMAIN}api/admin/create-cate-product`, params, {
         headers: {
           Accept: 'application/json',
           Authorization: `Bearer ${token}`,
         },
       });
+
       Swal.fire({
         position: 'center',
         icon: 'success',
-        title: response.data[0],
+        title: response.data.message,
         showConfirmButton: false,
         timer: 1500,
       });
@@ -111,7 +122,7 @@ const ServiceManagement = () => {
 
   const handleDelete = async (id) => {
     try {
-      const response = await axios.delete(`${import.meta.env.VITE_DOMAIN}api/admin/delete-service/${id}`, {
+      const response = await axios.delete(`${import.meta.env.VITE_DOMAIN}api/admin/delete-cate-product/${id}`, {
         headers: {
           Accept: 'application/json',
           Authorization: `Bearer ${token}`,
@@ -140,15 +151,21 @@ const ServiceManagement = () => {
     <>
       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>
         <Button type="primary" onClick={showModal}>
-          Add Service
+          Add Category Room
         </Button>
         {/* <Space>
           <Search placeholder="Search by name or email" style={{ width: 200 }} />
         </Space> */}
       </div>
-      <Table columns={columns} dataSource={listUser.map((user) => ({ ...user, key: user.id }))} />
+      <Table
+        columns={columns}
+        dataSource={listUser.map((user) => ({
+          ...user,
+          key: user.id,
+        }))}
+      />
       <Modal
-        title="Add Teacher Account"
+        title="Add Category Product"
         open={isModalOpen}
         onOk={handleSignUp}
         onCancel={handleCancel}
@@ -157,13 +174,17 @@ const ServiceManagement = () => {
             Cancel
           </Button>,
           <Button key="submit" type="primary" onClick={handleSignUp}>
-            Add Service
+            Add Category Product
           </Button>,
         ]}
       >
         <Form layout="vertical" form={form}>
-          <Form.Item label="Service Name" name="fullName" required>
-            <Input placeholder="Enter service name" value={name} onChange={(e) => setName(e.target.value)} />
+          <Form.Item
+            label="Category Name"
+            name="cateName"
+            rules={[{ required: true, message: 'Please enter the Category Name!' }]}
+          >
+            <Input placeholder="Enter Category Name" value={cateName} onChange={(e) => setCateName(e.target.value)} />
           </Form.Item>
         </Form>
       </Modal>
@@ -171,4 +192,4 @@ const ServiceManagement = () => {
   );
 };
 
-export default ServiceManagement;
+export default CategoryProduct;

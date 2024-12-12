@@ -5,22 +5,20 @@ import Swal from 'sweetalert2';
 import Cookies from 'js-cookie';
 import axios from 'axios';
 import './style.scss';
-import { Option } from 'antd/es/mentions';
+
+const { Option } = Select;
 
 // const { Search } = Input;
 
-const Product = () => {
-  const authData = Cookies.get('Auth');
-  const authObject = JSON.parse(authData);
-
+const Room = () => {
   const token = Cookies.get('token');
   const [form] = Form.useForm();
   const [formEdit] = Form.useForm();
 
-  const [name, setName] = useState('');
+  const [roomName, setRoomName] = useState('');
   const [price, setPrice] = useState('');
-  const [idCategory, setIdCategory] = useState('');
   const [listCategory, setListCategory] = useState([]);
+  const [idRoomCategories, setIdRoomCategory] = useState(null);
   const [active, setActive] = useState(false);
 
   const [listUser, setListUser] = useState([]);
@@ -34,14 +32,19 @@ const Product = () => {
       key: 'id',
     },
     {
-      title: 'Name',
-      dataIndex: 'name',
-      key: 'name',
+      title: 'Room Name',
+      dataIndex: 'room_name',
+      key: 'room_name',
     },
     {
       title: 'Price',
       dataIndex: 'price',
       key: 'price',
+    },
+    {
+      title: 'Type Room',
+      dataIndex: 'id_room_categories',
+      key: 'id_room_categories',
     },
     {
       title: 'Status',
@@ -56,6 +59,7 @@ const Product = () => {
         <Space>
           <Button icon={<EditOutlined />} onClick={() => handleEdit(record)} />
           <Button icon={<DeleteOutlined />} danger onClick={() => handleDelete(record.id)} />
+          <Button onClick={() => handleDelete(record.id)}>Tạo đặt phòng</Button>
         </Space>
       ),
     },
@@ -63,21 +67,13 @@ const Product = () => {
 
   const getUserAPI = async () => {
     try {
-      const response = await axios.get(`${import.meta.env.VITE_DOMAIN}api/admin/list-product`, {
+      const response = await axios.get(`${import.meta.env.VITE_DOMAIN}api/staff/list-room`, {
         headers: {
           Accept: 'application/json',
           Authorization: `Bearer ${token}`,
         },
       });
-      const list = Array.isArray(response.data) && Array.isArray(response.data[0]) ? response.data[0] : [];
-
-      const processedList = list.map((item) => ({
-        ...item,
-        num_children: Number(item.children),
-        children: undefined,
-      }));
-
-      setListUser(processedList);
+      response.data.room ? setListUser(response.data.room) : setListUser([]);
     } catch (error) {
       console.error(error);
       setListUser([]);
@@ -86,7 +82,7 @@ const Product = () => {
 
   const getCategoryRoom = async () => {
     try {
-      const response = await axios.get(`${import.meta.env.VITE_DOMAIN}api/admin/list-cate-product`, {
+      const response = await axios.get(`${import.meta.env.VITE_DOMAIN}api/admin/list-cate-room`, {
         headers: {
           Accept: 'application/json',
           Authorization: `Bearer ${token}`,
@@ -118,7 +114,7 @@ const Product = () => {
   };
 
   const handleSignUp = async () => {
-    if (!name || !price || !idCategory) {
+    if (!roomName || !price || !idRoomCategories) {
       Swal.fire({
         title: 'Warning: Please Complete All Required Information',
         text: 'Please fill in all the information.',
@@ -128,15 +124,14 @@ const Product = () => {
     }
 
     const params = {
-      id_user: authObject.id,
-      name,
-      price,
-      id_category: idCategory,
+      room_name: roomName,
+      price: price,
+      id_room_categories: idRoomCategories,
       status: active ? 1 : 0,
     };
 
     try {
-      const response = await axios.post(`${import.meta.env.VITE_DOMAIN}api/admin/create-product`, params, {
+      const response = await axios.post(`${import.meta.env.VITE_DOMAIN}api/staff/create-room`, params, {
         headers: {
           Accept: 'application/json',
           Authorization: `Bearer ${token}`,
@@ -164,7 +159,7 @@ const Product = () => {
 
   const handleDelete = async (id) => {
     try {
-      const response = await axios.delete(`${import.meta.env.VITE_DOMAIN}api/admin/delete-product/${id}`, {
+      const response = await axios.delete(`${import.meta.env.VITE_DOMAIN}api/staff/delete-room/${id}`, {
         headers: {
           Accept: 'application/json',
           Authorization: `Bearer ${token}`,
@@ -195,7 +190,7 @@ const Product = () => {
   };
 
   const handleEditCourse = async () => {
-    if (!selectedUser.id_user || !selectedUser.name || !selectedUser.price || !selectedUser.id_category) {
+    if (!selectedUser.room_name || !selectedUser.price || !selectedUser.id_room_categories) {
       Swal.fire({
         title: 'Warning: Please Complete All Required Information',
         text: 'Please fill in all the information.',
@@ -204,28 +199,26 @@ const Product = () => {
       return;
     }
 
-    const params = new FormData();
-    params.append('id_user', selectedUser.id_user);
-    params.append('name', selectedUser.name);
-    params.append('price', selectedUser.price);
-    params.append('id_category', selectedUser.id_category);
-    params.append('status', 1);
+    const params = {
+      room_name: selectedUser.room_name,
+      price: selectedUser.price,
+      id_room_categories: selectedUser.id_room_categories,
+      status: selectedUser.status,
+    };
+
 
     try {
-      const response = await axios.post(
-        `${import.meta.env.VITE_DOMAIN}api/admin/edit-product/${selectedUser.id}`,
-        params,
-        {
-          headers: {
-            Accept: 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
+      const response = await axios.put(`${import.meta.env.VITE_DOMAIN}api/staff/edit-room/${selectedUser.id}`, params, {
+        headers: {
+          Accept: 'application/json',
+          Authorization: `Bearer ${token}`,
         },
-      );
+      });
+
       Swal.fire({
         position: 'center',
         icon: 'success',
-        title: response.data,
+        title: response.data.message,
         showConfirmButton: false,
         timer: 1500,
       });
@@ -243,14 +236,13 @@ const Product = () => {
   const handleEditCancel = () => {
     setIsModalOpenEdit(false);
   };
-
   useEffect(() => {
     if (selectedUser) {
       formEdit.setFieldsValue({
-        id_user: selectedUser.id_user,
-        name: selectedUser.name,
+        roomName: selectedUser.room_name,
         price: selectedUser.price,
-        id_category: selectedUser.id_category,
+        idRoomCategories: selectedUser.id_room_categories,
+        active: selectedUser.status === 1,
       });
     }
   }, [selectedUser, formEdit]);
@@ -273,7 +265,7 @@ const Product = () => {
         }))}
       />
       <Modal
-        title="Add Product"
+        title="Add Room"
         open={isModalOpen}
         onOk={handleSignUp}
         onCancel={handleCancel}
@@ -282,13 +274,17 @@ const Product = () => {
             Cancel
           </Button>,
           <Button key="submit" type="primary" onClick={handleSignUp}>
-            Add Product
+            Add Room
           </Button>,
         ]}
       >
         <Form layout="vertical" form={form}>
-          <Form.Item label="Name" name="name" rules={[{ required: true, message: 'Please enter name!' }]}>
-            <Input placeholder="Enter name" value={name} onChange={(e) => setName(e.target.value)} />
+          <Form.Item
+            label="Room Name"
+            name="roomName"
+            rules={[{ required: true, message: 'Please enter the Room Name!' }]}
+          >
+            <Input placeholder="Enter Id User" value={roomName} onChange={(e) => setRoomName(e.target.value)} />
           </Form.Item>
 
           <Form.Item
@@ -303,19 +299,20 @@ const Product = () => {
               onChange={(e) => setPrice(e.target.value)}
             />
           </Form.Item>
+
           <Form.Item
-            label="Product Category"
+            label="Room Category"
             name="idRoomCategories"
             rules={[{ required: true, message: 'Please select idCategory!' }]}
           >
             <Select
               placeholder="Select idCategory"
-              value={idCategory}
-              onChange={(value) => setIdCategory(value)}
+              value={idRoomCategories}
+              onChange={(value) => setIdRoomCategory(value)}
             >
               {listCategory.map((item) => (
                 <Option value={item.id} key={item.id}>
-                  {item.CateName}
+                  {item.room_type}
                 </Option>
               ))}
             </Select>
@@ -327,19 +324,14 @@ const Product = () => {
           </Form.Item>
         </Form>
       </Modal>
-      <Modal title="Edit Product" open={isModalOpenEdit} onCancel={handleEditCancel} onOk={handleEditCourse}>
+
+      <Modal title="Edit Room" open={isModalOpenEdit} onCancel={handleEditCancel} onOk={handleEditCourse}>
         {selectedUser && (
           <Form layout="vertical" form={formEdit}>
-            <Form.Item label="Id User" name="id_user" required>
+            <Form.Item label="Room Name" name="roomName" required>
               <Input
-                value={selectedUser.id_user}
-                onChange={(e) => setSelectedUser({ ...selectedUser, id_user: e.target.value })}
-              />
-            </Form.Item>
-            <Form.Item label="Name" name="name" required>
-              <Input
-                value={selectedUser.name}
-                onChange={(e) => setSelectedUser({ ...selectedUser, name: e.target.value })}
+                value={selectedUser.room_name}
+                onChange={(e) => setSelectedUser({ ...selectedUser, room_name: e.target.value })}
               />
             </Form.Item>
             <Form.Item label="Price" name="price" required>
@@ -348,11 +340,26 @@ const Product = () => {
                 onChange={(e) => setSelectedUser({ ...selectedUser, price: e.target.value })}
               />
             </Form.Item>
-            <Form.Item label="Id Category" name="id_category" required>
-              <Input
-                value={selectedUser.id_category}
-                onChange={(e) => setSelectedUser({ ...selectedUser, id_category: e.target.value })}
-              />
+            <Form.Item label="Room Category" name="idRoomCategories" required>
+              <Select
+                placeholder="Select idCategory"
+                value={selectedUser.id_room_categories}
+                onChange={(value) => setSelectedUser({ ...selectedUser, id_room_categories: value })}
+              >
+                {listCategory.map((item) => (
+                  <Option value={item.id} key={item.id}>
+                    {item.room_type}
+                  </Option>
+                ))}
+              </Select>
+            </Form.Item>
+            <Form.Item name="active" valuePropName="checked">
+              <Checkbox
+                checked={selectedUser.status === 1}
+                onChange={(e) => setSelectedUser({ ...selectedUser, status: e.target.checked ? 1 : 0 })}
+              >
+                Active
+              </Checkbox>
             </Form.Item>
           </Form>
         )}
@@ -361,4 +368,4 @@ const Product = () => {
   );
 };
 
-export default Product;
+export default Room;

@@ -159,8 +159,6 @@ const User = () => {
     }
   };
 
-  console.log(listUser);
-
   return (
     <>
       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>
