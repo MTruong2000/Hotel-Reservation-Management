@@ -4,6 +4,8 @@ import { DeleteOutlined, EditOutlined } from '@ant-design/icons';
 import Cookies from 'js-cookie';
 import Swal from 'sweetalert2';
 import axios from 'axios';
+import noImage from '/img/no-image.avif';
+
 import './style.scss';
 
 // const { Search } = Input;
@@ -17,6 +19,7 @@ const CategoryRoom = () => {
   const [adult, setAdult] = useState('');
   const [children, setChildren] = useState('');
   const [size, setSize] = useState('');
+  const [imageLink, setImageLink] = useState('');
 
   const [listUser, setListUser] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -47,6 +50,12 @@ const CategoryRoom = () => {
       title: 'Size',
       dataIndex: 'size',
       key: 'size',
+    },
+    {
+      title: 'Image',
+      dataIndex: 'image',
+      key: 'image',
+      render: (image) => <img src={image ? image : noImage} style={{ width: '100px', height: '100px' }} />,
     },
     {
       title: 'Status',
@@ -107,7 +116,7 @@ const CategoryRoom = () => {
   };
 
   const handleSignUp = async () => {
-    if (!roomType || !adult || !children || !size) {
+    if (!roomType || !adult || !children || !size || !imageLink) {
       Swal.fire({
         title: 'Warning: Please Complete All Required Information',
         text: 'Please fill in all the information.',
@@ -121,6 +130,7 @@ const CategoryRoom = () => {
       adult: Number(adult),
       children: Number(children),
       size: Number(size),
+      image: imageLink,
       status: 1,
     };
 
@@ -199,6 +209,7 @@ const CategoryRoom = () => {
     params.append('children', selectedUser.num_children);
     params.append('size', selectedUser.size);
     params.append('status', 1);
+    params.append('image', selectedUser.image);
 
     try {
       const response = await axios.post(
@@ -240,6 +251,7 @@ const CategoryRoom = () => {
         adult: selectedUser.adult,
         children: selectedUser.num_children,
         size: selectedUser.size,
+        imageLink: selectedUser.image,
       });
     }
   }, [selectedUser, formEdit]);
@@ -318,6 +330,13 @@ const CategoryRoom = () => {
               onChange={(e) => setSize(e.target.value)}
             />
           </Form.Item>
+          <Form.Item
+            label="Image Link"
+            name="imageLink"
+            rules={[{ required: true, message: 'Please enter the Image Link!' }]}
+          >
+            <Input placeholder="Enter Image Link" value={imageLink} onChange={(e) => setImageLink(e.target.value)} />
+          </Form.Item>
         </Form>
       </Modal>
       <Modal title="Edit Category Room" open={isModalOpenEdit} onCancel={handleEditCancel} onOk={handleEditCourse}>
@@ -348,6 +367,12 @@ const CategoryRoom = () => {
                 type="number"
                 value={selectedUser.size}
                 onChange={(e) => setSelectedUser({ ...selectedUser, size: e.target.value })}
+              />
+            </Form.Item>
+            <Form.Item label="ImageLink" name="imageLink" required>
+              <Input
+                value={selectedUser.image}
+                onChange={(e) => setSelectedUser({ ...selectedUser, image: e.target.value })}
               />
             </Form.Item>
           </Form>

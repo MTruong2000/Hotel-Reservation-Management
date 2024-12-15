@@ -4,8 +4,9 @@ import { DeleteOutlined, EditOutlined } from '@ant-design/icons';
 import Swal from 'sweetalert2';
 import Cookies from 'js-cookie';
 import axios from 'axios';
-import './style.scss';
+import noImage from '/img/no-image.avif';
 import { Option } from 'antd/es/mentions';
+import './style.scss';
 
 // const { Search } = Input;
 
@@ -21,6 +22,7 @@ const Product = () => {
   const [price, setPrice] = useState('');
   const [idCategory, setIdCategory] = useState('');
   const [listCategory, setListCategory] = useState([]);
+  const [imageLink, setImageLink] = useState('');
   const [active, setActive] = useState(false);
 
   const [listUser, setListUser] = useState([]);
@@ -42,6 +44,12 @@ const Product = () => {
       title: 'Price',
       dataIndex: 'price',
       key: 'price',
+    },
+    {
+      title: 'Image',
+      dataIndex: 'image',
+      key: 'image',
+      render: (image) => <img src={image ? image : noImage} style={{ width: '100px', height: '100px' }} />,
     },
     {
       title: 'Status',
@@ -118,7 +126,7 @@ const Product = () => {
   };
 
   const handleSignUp = async () => {
-    if (!name || !price || !idCategory) {
+    if (!name || !price || !idCategory || !imageLink) {
       Swal.fire({
         title: 'Warning: Please Complete All Required Information',
         text: 'Please fill in all the information.',
@@ -132,6 +140,7 @@ const Product = () => {
       name,
       price,
       id_category: idCategory,
+      image: imageLink,
       status: active ? 1 : 0,
     };
 
@@ -209,7 +218,8 @@ const Product = () => {
     params.append('name', selectedUser.name);
     params.append('price', selectedUser.price);
     params.append('id_category', selectedUser.id_category);
-    params.append('status', 1);
+    params.append('image', selectedUser.image);
+    params.append('status', selectedUser.status ? 1 : 0);
 
     try {
       const response = await axios.post(
@@ -251,6 +261,8 @@ const Product = () => {
         name: selectedUser.name,
         price: selectedUser.price,
         id_category: selectedUser.id_category,
+        imageLink: selectedUser.image,
+        status: selectedUser.status,
       });
     }
   }, [selectedUser, formEdit]);
@@ -308,17 +320,20 @@ const Product = () => {
             name="idRoomCategories"
             rules={[{ required: true, message: 'Please select idCategory!' }]}
           >
-            <Select
-              placeholder="Select idCategory"
-              value={idCategory}
-              onChange={(value) => setIdCategory(value)}
-            >
+            <Select placeholder="Select idCategory" value={idCategory} onChange={(value) => setIdCategory(value)}>
               {listCategory.map((item) => (
                 <Option value={item.id} key={item.id}>
                   {item.CateName}
                 </Option>
               ))}
             </Select>
+          </Form.Item>
+          <Form.Item
+            label="Image Link"
+            name="imageLink"
+            rules={[{ required: true, message: 'Please enter the Image Link!' }]}
+          >
+            <Input placeholder="Enter Image Link" value={imageLink} onChange={(e) => setImageLink(e.target.value)} />
           </Form.Item>
           <Form.Item name="active" valuePropName="checked">
             <Checkbox checked={active} onChange={(e) => setActive(e.target.checked)}>
@@ -353,6 +368,20 @@ const Product = () => {
                 value={selectedUser.id_category}
                 onChange={(e) => setSelectedUser({ ...selectedUser, id_category: e.target.value })}
               />
+            </Form.Item>
+            <Form.Item label="ImageLink" name="imageLink" required>
+              <Input
+                value={selectedUser.image}
+                onChange={(e) => setSelectedUser({ ...selectedUser, image: e.target.value })}
+              />
+            </Form.Item>
+            <Form.Item name="status" valuePropName="checked">
+              <Checkbox
+                checked={selectedUser.status}
+                onChange={(e) => setSelectedUser({ ...selectedUser, status: e.target.checked })}
+              >
+                Active
+              </Checkbox>
             </Form.Item>
           </Form>
         )}
