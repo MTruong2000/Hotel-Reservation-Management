@@ -162,3 +162,7 @@ body {
 .fw-custom {
   font-weight: bolder;
 }
+
+.ant-table-tbody > tr > td {
+  vertical-align: middle;
+}

@@ -1,32 +1,18 @@
 import { useEffect, useState } from 'react';
-import { Table, Button, Input, Space, Modal, Form, Select, Checkbox } from 'antd';
-import { DeleteOutlined, EditOutlined } from '@ant-design/icons';
+import { Table, Button, Input, Modal, Form, Checkbox } from 'antd';
 import Swal from 'sweetalert2';
 import Cookies from 'js-cookie';
 import axios from 'axios';
 import noImage from '/img/no-image.avif';
-import { Option } from 'antd/es/mentions';
 import './style.scss';
 
 // const { Search } = Input;
 
-const Product = () => {
-  const authData = Cookies.get('Auth');
-  const authObject = JSON.parse(authData);
-
+const ListProductStaff = () => {
   const token = Cookies.get('token');
-  const [form] = Form.useForm();
   const [formEdit] = Form.useForm();
 
-  const [name, setName] = useState('');
-  const [price, setPrice] = useState('');
-  const [idCategory, setIdCategory] = useState('');
-  const [listCategory, setListCategory] = useState([]);
-  const [imageLink, setImageLink] = useState('');
-  const [active, setActive] = useState(false);
-
   const [listUser, setListUser] = useState([]);
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [isModalOpenEdit, setIsModalOpenEdit] = useState(false);
   const [selectedUser, setSelectedUser] = useState({});
   const columns = [
@@ -34,6 +20,7 @@ const Product = () => {
       title: 'ID',
       dataIndex: 'id',
       key: 'id',
+      align: 'center',
     },
     {
       title: 'Name',
@@ -55,32 +42,30 @@ const Product = () => {
       title: 'Status',
       dataIndex: 'status',
       key: 'status',
-      render: (status) =>
+      render: (status, record) =>
         status === 1 ? (
-          <Button type="primary" style={{ backgroundColor: 'green', borderColor: 'green' }}>
+          <Button
+            type="primary"
+            onClick={handleChangeStatus(record.id)}
+            style={{ backgroundColor: 'green', borderColor: 'green' }}
+          >
             Active
           </Button>
         ) : (
-          <Button type="primary" style={{ backgroundColor: 'yellow', borderColor: 'yellow', color: 'black' }}>
+          <Button
+            type="primary"
+            onClick={handleChangeStatus(record.id)}
+            style={{ backgroundColor: 'yellow', borderColor: 'yellow', color: 'black' }}
+          >
             Inactive
           </Button>
         ),
-    },
-    {
-      title: 'Actions',
-      key: 'actions',
-      render: (text, record) => (
-        <Space>
-          <Button icon={<EditOutlined />} onClick={() => handleEdit(record)} />
-          <Button icon={<DeleteOutlined />} danger onClick={() => handleDelete(record.id)} />
-        </Space>
-      ),
     },
   ];
 
   const getUserAPI = async () => {
     try {
-      const response = await axios.get(`${import.meta.env.VITE_DOMAIN}api/admin/list-product`, {
+      const response = await axios.get(`${import.meta.env.VITE_DOMAIN}api/staff/list-product`, {
         headers: {
           Accept: 'application/json',
           Authorization: `Bearer ${token}`,
@@ -101,115 +86,37 @@ const Product = () => {
     }
   };
 
-  const getCategoryRoom = async () => {
-    try {
-      const response = await axios.get(`${import.meta.env.VITE_DOMAIN}api/admin/list-cate-product`, {
-        headers: {
-          Accept: 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      setListCategory(response.data[0]);
-    } catch (error) {
-      console.error(error);
-      setListUser([]);
-    }
-  };
-
   useEffect(() => {
     getUserAPI();
-    getCategoryRoom();
   }, []);
 
-  const showModal = () => {
-    form.resetFields();
-    setIsModalOpen(true);
-  };
-
-  const handleOk = () => {
-    setIsModalOpen(false);
-  };
-
-  const handleCancel = () => {
-    setIsModalOpen(false);
-  };
-
-  const handleSignUp = async () => {
-    if (!name || !price || !idCategory || !imageLink) {
-      Swal.fire({
-        title: 'Warning: Please Complete All Required Information',
-        text: 'Please fill in all the information.',
-        icon: 'warning',
-      });
-      return;
-    }
-
-    const params = {
-      id_user: authObject.id,
-      name,
-      price,
-      id_category: idCategory,
-      image: imageLink,
-      status: active ? 1 : 0,
-    };
-
+  const handleChangeStatus = (id) => async () => {
     try {
-      const response = await axios.post(`${import.meta.env.VITE_DOMAIN}api/admin/create-product`, params, {
-        headers: {
-          Accept: 'application/json',
-          Authorization: `Bearer ${token}`,
+      const response = await axios.put(
+        `${import.meta.env.VITE_DOMAIN}api/staff/change-status/${id}`,
+        {},
+        {
+          headers: {
+            Accept: 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
         },
-      });
-
+      );
       Swal.fire({
         position: 'center',
         icon: 'success',
-        title: response.data[0],
+        title: response.data.message,
         showConfirmButton: false,
         timer: 1500,
       });
       getUserAPI();
-      handleOk();
     } catch (error) {
-      console.error('Login error:', error);
       Swal.fire({
-        title: 'Fail ?',
-        text: error.response.data.message,
+        title: 'Request Fail ?',
+        text: error,
         icon: 'error',
       });
     }
-  };
-
-  const handleDelete = async (id) => {
-    try {
-      const response = await axios.delete(`${import.meta.env.VITE_DOMAIN}api/admin/delete-product/${id}`, {
-        headers: {
-          Accept: 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      Swal.fire({
-        position: 'center',
-        icon: 'success',
-        title: response.data[0],
-        showConfirmButton: false,
-        timer: 1500,
-      });
-      getUserAPI();
-      handleOk();
-    } catch (error) {
-      console.error('Login error:', error);
-      Swal.fire({
-        title: 'Fail ?',
-        text: error.response.data.message,
-        icon: 'error',
-      });
-    }
-  };
-
-  const handleEdit = (record) => {
-    setSelectedUser(record);
-    setIsModalOpenEdit(true);
   };
 
   const handleEditCourse = async () => {
@@ -279,9 +186,6 @@ const Product = () => {
   return (
     <>
       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>
-        <Button type="primary" onClick={showModal}>
-          Add Product
-        </Button>
         {/* <Space>
           <Search placeholder="Search by name or email" style={{ width: 200 }} />
         </Space> */}
@@ -293,64 +197,6 @@ const Product = () => {
           key: user.id,
         }))}
       />
-      <Modal
-        title="Add Product"
-        open={isModalOpen}
-        onOk={handleSignUp}
-        onCancel={handleCancel}
-        footer={[
-          <Button key="cancel" onClick={handleCancel}>
-            Cancel
-          </Button>,
-          <Button key="submit" type="primary" onClick={handleSignUp}>
-            Add Product
-          </Button>,
-        ]}
-      >
-        <Form layout="vertical" form={form}>
-          <Form.Item label="Name" name="name" rules={[{ required: true, message: 'Please enter name!' }]}>
-            <Input placeholder="Enter name" value={name} onChange={(e) => setName(e.target.value)} />
-          </Form.Item>
-
-          <Form.Item
-            label="Price"
-            name="price"
-            rules={[{ required: true, message: 'Please enter the number of price!' }]}
-          >
-            <Input
-              type="number"
-              placeholder="Enter number of price"
-              value={price}
-              onChange={(e) => setPrice(e.target.value)}
-            />
-          </Form.Item>
-          <Form.Item
-            label="Product Category"
-            name="idRoomCategories"
-            rules={[{ required: true, message: 'Please select idCategory!' }]}
-          >
-            <Select placeholder="Select idCategory" value={idCategory} onChange={(value) => setIdCategory(value)}>
-              {listCategory.map((item) => (
-                <Option value={item.id} key={item.id}>
-                  {item.CateName}
-                </Option>
-              ))}
-            </Select>
-          </Form.Item>
-          <Form.Item
-            label="Image Link"
-            name="imageLink"
-            rules={[{ required: true, message: 'Please enter the Image Link!' }]}
-          >
-            <Input placeholder="Enter Image Link" value={imageLink} onChange={(e) => setImageLink(e.target.value)} />
-          </Form.Item>
-          <Form.Item name="active" valuePropName="checked">
-            <Checkbox checked={active} onChange={(e) => setActive(e.target.checked)}>
-              Active
-            </Checkbox>
-          </Form.Item>
-        </Form>
-      </Modal>
       <Modal title="Edit Product" open={isModalOpenEdit} onCancel={handleEditCancel} onOk={handleEditCourse}>
         {selectedUser && (
           <Form layout="vertical" form={formEdit}>
@@ -399,4 +245,4 @@ const Product = () => {
   );
 };
 
-export default Product;
+export default ListProductStaff;

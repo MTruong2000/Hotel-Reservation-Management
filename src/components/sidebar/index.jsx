@@ -5,8 +5,6 @@ import axios from 'axios';
 import Swal from 'sweetalert2';
 import './style.scss';
 
-
-
 function Sidebar() {
   const token = Cookies.get('token');
   const navigate = useNavigate();
@@ -91,11 +89,23 @@ function Sidebar() {
             </>
           )}
           {authObject.level === 3 && (
-            <li className="menu-item">
-              <Link className="" to={`/room`}>
-                <RiListCheck2 className="icon" /> Quản lý phòng
-              </Link>
-            </li>
+            <>
+              <li className="menu-item">
+                <Link className="" to={`/room`}>
+                  <RiListCheck2 className="icon" /> Quản lý phòng
+                </Link>
+              </li>
+              <li className="menu-item">
+                <Link className="" to={`/list-product`}>
+                  <RiListCheck2 className="icon" /> Danh sách sản phẩm
+                </Link>
+              </li>
+              <li className="menu-item">
+                <Link className="" to={`/blog`}>
+                  <RiListCheck2 className="icon" /> Quản lý blog
+                </Link>
+              </li>
+            </>
           )}
 
           <li className="menu-item logout-item" onClick={handleLogout}>

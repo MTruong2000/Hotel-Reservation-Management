@@ -50,7 +50,16 @@ const Room = () => {
       title: 'Status',
       dataIndex: 'status',
       key: 'status',
-      render: (status) => (status === 1 ? 'Active' : 'Inactive'),
+      render: (status) =>
+        status === 1 ? (
+          <Button type="primary" style={{ backgroundColor: 'green', borderColor: 'green' }}>
+            Active
+          </Button>
+        ) : (
+          <Button type="primary" style={{ backgroundColor: 'yellow', borderColor: 'yellow', color: 'black' }}>
+            Inactive
+          </Button>
+        ),
     },
     {
       title: 'Actions',
@@ -59,7 +68,7 @@ const Room = () => {
         <Space>
           <Button icon={<EditOutlined />} onClick={() => handleEdit(record)} />
           <Button icon={<DeleteOutlined />} danger onClick={() => handleDelete(record.id)} />
-          <Button onClick={() => handleDelete(record.id)}>Tạo đặt phòng</Button>
+          {record.status == 1 ? <Button onClick={() => handleCreateAutoRental(record)}>Tạo đặt phòng</Button> : null}
         </Space>
       ),
     },
@@ -99,6 +108,37 @@ const Room = () => {
     getUserAPI();
     getCategoryRoom();
   }, []);
+
+  const handleCreateAutoRental = async (record) => {
+    const params = {
+      id_room: record.id,
+      status: record.status,
+    };
+
+    console.log(params);
+    try {
+      const response = await axios.post(`${import.meta.env.VITE_DOMAIN}api/staff/create-rental-detail`, params, {
+        headers: {
+          Accept: 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      Swal.fire({
+        position: 'center',
+        icon: 'success',
+        title: response.data.message,
+        showConfirmButton: false,
+        timer: 1500,
+      });
+    } catch (error) {
+      Swal.fire({
+        title: 'Fail ?',
+        text: error.response.data.message,
+        icon: 'error',
+      });
+    }
+  };
 
   const showModal = () => {
     form.resetFields();
@@ -168,7 +208,7 @@ const Room = () => {
       Swal.fire({
         position: 'center',
         icon: 'success',
-        title: response.data[0],
+        title: response.data.message,
         showConfirmButton: false,
         timer: 1500,
       });
@@ -205,7 +245,6 @@ const Room = () => {
       id_room_categories: selectedUser.id_room_categories,
       status: selectedUser.status,
     };
-
 
     try {
       const response = await axios.put(`${import.meta.env.VITE_DOMAIN}api/staff/edit-room/${selectedUser.id}`, params, {
