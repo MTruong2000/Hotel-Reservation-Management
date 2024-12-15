@@ -189,7 +189,7 @@ const Blog = () => {
   };
 
   const handleEditCourse = async () => {
-    if (!selectedUser.room_name || !selectedUser.price || !selectedUser.id_room_categories) {
+    if (!selectedUser.blog_name || !selectedUser.short_describe || !selectedUser.detail_describe || !selectedUser.img) {
       Swal.fire({
         title: 'Warning: Please Complete All Required Information',
         text: 'Please fill in all the information.',
@@ -199,14 +199,15 @@ const Blog = () => {
     }
 
     const params = {
-      room_name: selectedUser.room_name,
-      price: selectedUser.price,
-      id_room_categories: selectedUser.id_room_categories,
+      blog_name: selectedUser.blog_name,
+      short_describe: selectedUser.short_describe,
+      detail_describe: selectedUser.detail_describe,
+      img: selectedUser.img,
       status: selectedUser.status,
     };
 
     try {
-      const response = await axios.put(`${import.meta.env.VITE_DOMAIN}api/staff/edit-room/${selectedUser.id}`, params, {
+      const response = await axios.post(`${import.meta.env.VITE_DOMAIN}api/staff/edit-blog/${selectedUser.id}`, params, {
         headers: {
           Accept: 'application/json',
           Authorization: `Bearer ${token}`,
@@ -237,9 +238,10 @@ const Blog = () => {
   useEffect(() => {
     if (selectedUser) {
       formEdit.setFieldsValue({
-        roomName: selectedUser.room_name,
-        price: selectedUser.price,
-        idRoomCategories: selectedUser.id_room_categories,
+        blogName: selectedUser.blog_name,
+        shortDescription: selectedUser.short_describe,
+        detailDescription: selectedUser.detail_describe,
+        imageLink: selectedUser.img,
         active: selectedUser.status === 1,
       });
     }
@@ -322,19 +324,31 @@ const Blog = () => {
         </Form>
       </Modal>
 
-      <Modal title="Edit Room" open={isModalOpenEdit} onCancel={handleEditCancel} onOk={handleEditCourse}>
+      <Modal title="Edit Blog" open={isModalOpenEdit} onCancel={handleEditCancel} onOk={handleEditCourse}>
         {selectedUser && (
           <Form layout="vertical" form={formEdit}>
-            <Form.Item label="Room Name" name="roomName" required>
+            <Form.Item label="Blog Name" name="blogName" required>
               <Input
                 value={selectedUser.room_name}
-                onChange={(e) => setSelectedUser({ ...selectedUser, room_name: e.target.value })}
+                onChange={(e) => setSelectedUser({ ...selectedUser, blog_name: e.target.value })}
               />
             </Form.Item>
-            <Form.Item label="Price" name="price" required>
+            <Form.Item label="Short Description" name="shortDescription" required>
               <Input
-                value={selectedUser.price}
-                onChange={(e) => setSelectedUser({ ...selectedUser, price: e.target.value })}
+                value={selectedUser.short_describe}
+                onChange={(e) => setSelectedUser({ ...selectedUser, short_describe: e.target.value })}
+              />
+            </Form.Item>
+            <Form.Item label="Detail Description" name="detailDescription" required>
+              <Input
+                value={selectedUser.detail_describe}
+                onChange={(e) => setSelectedUser({ ...selectedUser, detail_describe: e.target.value })}
+              />
+            </Form.Item>
+            <Form.Item label="Image Link" name="imageLink" required>
+              <Input
+                value={selectedUser.img}
+                onChange={(e) => setSelectedUser({ ...selectedUser, img: e.target.value })}
               />
             </Form.Item>
             <Form.Item name="active" valuePropName="checked">
