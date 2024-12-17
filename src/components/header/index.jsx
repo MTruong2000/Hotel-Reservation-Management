@@ -28,6 +28,7 @@ const Header = ({ isSidebarOpen, toggleSidebar }) => {
         },
       });
       setUser(response.data[0]);
+      form.setFieldsValue(response.data[0]);
     } catch (error) {
       console.error(error);
     }
@@ -37,23 +38,22 @@ const Header = ({ isSidebarOpen, toggleSidebar }) => {
     getUserAPI();
   }, []);
 
-  // Hiển thị Modal
   const showModal = () => {
-    form.resetFields();
     setIsModalVisible(true);
   };
 
-  // Ẩn Modal
   const handleCancel = () => {
     setIsModalVisible(false);
   };
 
-  // Xử lý submit form
   const onFinish = async (values) => {
-    console.log('Form Values:', values);
     const params = {
       name: values.name,
-      password: values.password,
+      password: '123456789',
+      address: values.address,
+      avatar: values.avatar,
+      email: values.email,
+      phone: values.phone,
     };
     try {
       const response = await axios.post(`${import.meta.env.VITE_DOMAIN}api/admin/update`, params, {
@@ -103,20 +103,23 @@ const Header = ({ isSidebarOpen, toggleSidebar }) => {
           </header>
         </div>
       </div>
-      <Modal title="Login" open={isModalVisible} onCancel={handleCancel} footer={null}>
+      <Modal title="Update Info" open={isModalVisible} onCancel={handleCancel} footer={null}>
         <Form name="loginForm" onFinish={onFinish} layout="vertical" form={form}>
           <Form.Item label="Name" name="name" rules={[{ required: true, message: 'Please enter your name!' }]}>
             <Input placeholder="Enter your name" />
           </Form.Item>
-
-          <Form.Item
-            label="Password"
-            name="password"
-            rules={[{ required: true, message: 'Please enter your password!' }]}
-          >
-            <Input.Password placeholder="Enter your password" />
+          <Form.Item label="Address" name="address" rules={[{ required: true, message: 'Please enter your address!' }]}>
+            <Input placeholder="Enter your address" />
           </Form.Item>
-
+          <Form.Item label="Avatar" name="avatar" rules={[{ required: true, message: 'Please enter your avatar!' }]}>
+            <Input placeholder="Enter your avatar" />
+          </Form.Item>
+          <Form.Item label="Email" name="email" rules={[{ required: true, message: 'Please enter your email!' }]}>
+            <Input placeholder="Enter your email" />
+          </Form.Item>
+          <Form.Item label="Phone" name="phone" rules={[{ required: true, message: 'Please enter your phone!' }]}>
+            <Input placeholder="Enter your phone" />
+          </Form.Item>
           <Form.Item>
             <Button type="primary" htmlType="submit" style={{ width: '100%' }}>
               Submit

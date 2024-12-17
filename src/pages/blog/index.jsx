@@ -251,7 +251,7 @@ const Blog = () => {
     <>
       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>
         <Button type="primary" onClick={showModal}>
-          Add Product
+          Add Blog
         </Button>
         {/* <Space>
           <Search placeholder="Search by name or email" style={{ width: 200 }} />
